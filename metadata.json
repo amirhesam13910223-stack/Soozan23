@@ -1,0 +1,6 @@
+{
+  "name": "سوزان | Soozan",
+  "description": "پیک امن محتوای خودنابودشونده؛ بفرست، بدون اینکه جا بماند.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
