@@ -3,176 +3,104 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useEffect, useRef } from 'react';
-import { Home, KeyRound, Download, Plus } from 'lucide-react';
+import React from 'react';
+import { Home, KeyRound, Download } from 'lucide-react';
 
 export type NavTab = 'home' | 'manage_code' | 'receive_file' | 'profile' | 'settings';
 
 interface Props {
   activeTab: NavTab;
   onSelectTab: (tab: NavTab) => void;
-  onOpenWizard: () => void;
-  isAppMode?: boolean; // false = web mode (only home & manage_code), true = app mode (all 3)
+  onOpenWizard?: () => void;
+  isAppMode?: boolean;
 }
 
 export const FloatingNavBar: React.FC<Props> = ({
   activeTab,
   onSelectTab,
-  onOpenWizard,
-  isAppMode = true,
 }) => {
-  const fabRef = useRef<HTMLDivElement>(null);
-  const navRef = useRef<HTMLDivElement>(null);
-  const baseHeightRef = useRef<number>(window.innerHeight);
-
-  useEffect(() => {
-    baseHeightRef.current = window.innerHeight;
-
-    const isInputActive = () => {
-      const active = document.activeElement;
-      if (!active) return false;
-      const tag = active.tagName?.toUpperCase();
-      return (
-        tag === 'INPUT' ||
-        tag === 'TEXTAREA' ||
-        tag === 'SELECT' ||
-        (typeof active.getAttribute === 'function' && active.getAttribute('contenteditable') === 'true')
-      );
-    };
-
-    let rafId: number | null = null;
-
-    const updatePosition = () => {
-      if (rafId) cancelAnimationFrame(rafId);
-
-      rafId = requestAnimationFrame(() => {
-        const inputActive = isInputActive();
-        const vv = window.visualViewport;
-
-        // When no input is active, update base baseline height
-        if (!inputActive) {
-          baseHeightRef.current = Math.max(baseHeightRef.current, window.innerHeight);
-        }
-
-        const currentHeight = vv ? vv.height : window.innerHeight;
-        const offsetTop = vv ? vv.offsetTop : 0;
-
-        // Calculate the height consumed by the virtual keyboard / viewport shrink
-        const delta = baseHeightRef.current - (currentHeight + offsetTop);
-        const shift = Math.max(0, Math.round(delta));
-        const transformValue = shift > 0 ? `translate3d(0, ${shift}px, 0)` : '';
-
-        // Direct DOM update (Zero React re-render thrashing on scroll/resize)
-        if (fabRef.current) fabRef.current.style.transform = transformValue;
-        if (navRef.current) navRef.current.style.transform = transformValue;
-      });
-    };
-
-    if (window.visualViewport) {
-      window.visualViewport.addEventListener('resize', updatePosition);
-      window.visualViewport.addEventListener('scroll', updatePosition);
-    }
-    window.addEventListener('resize', updatePosition);
-    window.addEventListener('scroll', updatePosition);
-    window.addEventListener('focusin', updatePosition);
-    window.addEventListener('focusout', () => {
-      setTimeout(updatePosition, 120);
-    });
-
-    return () => {
-      if (rafId) cancelAnimationFrame(rafId);
-      if (window.visualViewport) {
-        window.visualViewport.removeEventListener('resize', updatePosition);
-        window.visualViewport.removeEventListener('scroll', updatePosition);
-      }
-      window.removeEventListener('resize', updatePosition);
-      window.removeEventListener('scroll', updatePosition);
-      window.removeEventListener('focusin', updatePosition);
-    };
-  }, []);
-
-  const items = [
-    {
-      id: 'home' as NavTab,
-      label: 'سازنده',
-      icon: Home,
-    },
-    {
-      id: 'manage_code' as NavTab,
-      label: 'پنل مدیریت',
-      icon: KeyRound,
-    },
-    ...(isAppMode
-      ? [
-          {
-            id: 'receive_file' as NavTab,
-            label: 'دریافت فایل',
-            icon: Download,
-          },
-        ]
-      : []),
-  ];
+  const isHomeActive = activeTab === 'home';
+  const isReceiveActive = activeTab === 'receive_file';
+  const isManageActive = activeTab === 'manage_code';
 
   return (
-    <>
-      {/* Floating Accent Circular FAB - Locked strictly in place via direct GPU transform */}
-      <div
-        ref={fabRef}
-        className="floating-fab-container"
-      >
+    <aside
+      className="docked-bottom-bar bg-zinc-950/95 backdrop-blur-2xl border-t border-zinc-800/80 shadow-[0_-10px_35px_rgba(0,0,0,0.85)]"
+      role="navigation"
+      aria-label="ناوبری اصلی سوزان"
+    >
+      <div className="max-w-lg mx-auto px-4 h-16 sm:h-18 flex items-center justify-between relative">
+        {/* راست (در چیدمان راست‌به‌چپ): دریافت فایل */}
         <button
           type="button"
-          onClick={onOpenWizard}
-          className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-gradient-to-tr from-orange-500 via-orange-500 to-amber-500 text-white shadow-xl shadow-orange-500/35 flex items-center justify-center hover:scale-105 active:scale-95 transition-transform border-2 border-zinc-950 focus:outline-none ring-4 ring-orange-500/10"
-          title="اشتراک‌گذاری فایل جدید (ویزارد)"
-          aria-label="اشتراک‌گذاری فایل جدید"
+          onClick={() => onSelectTab('receive_file')}
+          aria-current={isReceiveActive ? 'page' : undefined}
+          className={`flex-1 flex flex-col items-center justify-center gap-1 py-1.5 transition-all group focus:outline-none select-none ${
+            isReceiveActive ? 'text-orange-400 font-black' : 'text-zinc-400 hover:text-zinc-200'
+          }`}
         >
-          <Plus className="w-6 h-6 sm:w-7 sm:h-7 stroke-[2.75]" />
+          <div
+            className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all ${
+              isReceiveActive
+                ? 'bg-orange-500/15 text-orange-400 ring-1 ring-orange-500/30 shadow-sm shadow-orange-500/10'
+                : 'text-zinc-400 group-hover:text-zinc-200 group-hover:bg-zinc-900/60'
+            }`}
+          >
+            <Download className="w-5 h-5 stroke-[2.2]" />
+          </div>
+          <span className="text-[11px] sm:text-xs tracking-tight leading-none font-bold">
+            دریافت فایل
+          </span>
+        </button>
+
+        {/* مرکز ویژه و مرتفع: سازنده (داشبورد) */}
+        <div className="relative -top-4 sm:-top-5 flex flex-col items-center justify-center px-3 z-10">
+          <button
+            type="button"
+            onClick={() => onSelectTab('home')}
+            aria-current={isHomeActive ? 'page' : undefined}
+            title="میز کار و پیشخوان سازنده"
+            className={`w-14 h-14 sm:w-16 sm:h-16 rounded-2xl sm:rounded-3xl flex items-center justify-center text-white transition-all transform active:scale-95 border-2 border-zinc-950 ring-4 ring-zinc-950 shadow-2xl focus:outline-none ${
+              isHomeActive
+                ? 'bg-gradient-to-tr from-orange-500 via-orange-500 to-amber-500 shadow-orange-500/40 ring-orange-500/20 scale-105'
+                : 'bg-zinc-900 hover:bg-zinc-850 text-zinc-300 hover:text-white border-zinc-800/90 shadow-black/80'
+            }`}
+          >
+            <Home className="w-7 h-7 sm:w-8 sm:h-8 stroke-[2.35] drop-shadow-md" />
+          </button>
+          <span
+            className={`text-[11px] sm:text-xs mt-1.5 font-black tracking-tight leading-none transition-colors ${
+              isHomeActive ? 'text-orange-400' : 'text-zinc-400 hover:text-zinc-200'
+            }`}
+          >
+            سازنده
+          </span>
+        </div>
+
+        {/* چپ (در چیدمان راست‌به‌چپ): پنل مدیریت */}
+        <button
+          type="button"
+          onClick={() => onSelectTab('manage_code')}
+          aria-current={isManageActive ? 'page' : undefined}
+          className={`flex-1 flex flex-col items-center justify-center gap-1 py-1.5 transition-all group focus:outline-none select-none ${
+            isManageActive ? 'text-blue-400 font-black' : 'text-zinc-400 hover:text-zinc-200'
+          }`}
+        >
+          <div
+            className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all ${
+              isManageActive
+                ? 'bg-blue-500/15 text-blue-400 ring-1 ring-blue-500/30 shadow-sm shadow-blue-500/10'
+                : 'text-zinc-400 group-hover:text-zinc-200 group-hover:bg-zinc-900/60'
+            }`}
+          >
+            <KeyRound className="w-5 h-5 stroke-[2.2]" />
+          </div>
+          <span className="text-[11px] sm:text-xs tracking-tight leading-none font-bold">
+            پنل مدیریت
+          </span>
         </button>
       </div>
-
-      {/* Centered Floating Capsule Bar - Locked strictly in place, never moves or fades */}
-      <div
-        ref={navRef}
-        className="floating-nav-container flex items-center justify-center px-3"
-      >
-        <nav
-          className="pointer-events-auto flex items-center gap-1 p-1.5 rounded-full bg-zinc-900/95 backdrop-blur-xl border border-zinc-700/60 shadow-2xl shadow-black/80 max-w-[calc(100vw-24px)]"
-          role="navigation"
-          aria-label="ناوبری اصلی سوزان"
-        >
-          {items.map((item) => {
-            const Icon = item.icon;
-            const isActive = activeTab === item.id;
-
-            return (
-              <button
-                key={item.id}
-                type="button"
-                onClick={() => onSelectTab(item.id)}
-                aria-current={isActive ? 'page' : undefined}
-                className={`relative min-w-[70px] sm:min-w-[84px] py-1.5 sm:py-2 px-3 sm:px-3.5 rounded-full flex flex-col items-center justify-center gap-0.5 text-center transition-colors focus:outline-none select-none ${
-                  isActive
-                    ? 'text-white'
-                    : 'text-zinc-400 hover:text-zinc-200'
-                }`}
-              >
-                {/* Active Sliding Pill Highlight */}
-                {isActive && (
-                  <span
-                    className="absolute inset-0 rounded-full bg-gradient-to-r from-orange-500 to-amber-600 shadow-md shadow-orange-500/25 -z-0"
-                  />
-                )}
-
-                <Icon className="w-5 h-5 relative z-10 shrink-0 stroke-[2.2]" />
-                <span className="text-[11px] sm:text-xs font-bold tracking-tight relative z-10 leading-none truncate max-w-full">
-                  {item.label}
-                </span>
-              </button>
-            );
-          })}
-        </nav>
-      </div>
-    </>
+    </aside>
   );
 };
+

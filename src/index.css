@@ -24,34 +24,14 @@ input, textarea, [contenteditable="true"], code, pre {
   -webkit-user-select: text !important;
 }
 
-/* Solid non-moving floating containers */
-.floating-nav-container {
+/* Docked Bottom Navigation Bar */
+.docked-bottom-bar {
   position: fixed;
-  bottom: 0.75rem;
+  bottom: 0;
   left: 0;
   right: 0;
   z-index: 40;
-  pointer-events: none;
-}
-
-@media (min-width: 640px) {
-  .floating-nav-container {
-    bottom: 1.25rem;
-  }
-}
-
-.floating-fab-container {
-  position: fixed;
-  bottom: 5.75rem;
-  left: 1.25rem;
-  z-index: 40;
-}
-
-@media (min-width: 640px) {
-  .floating-fab-container {
-    bottom: 6.5rem;
-    left: 1.5rem;
-  }
+  padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 
 /* Hide scrollbars cleanly */

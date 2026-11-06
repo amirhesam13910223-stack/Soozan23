@@ -95,27 +95,21 @@ export function useAntiLeakShield(options: AntiLeakOptions = { enabled: true }) 
       }
     };
 
-    // 3. Tab visibility switch and window blur deterrence (blackout curtain)
+    // 3. Tab visibility switch deterrence (blackout curtain when tab is switched)
     const handleVisibilityChange = () => {
       if (document.hidden) {
         setIsBlackedOut(true);
       }
     };
 
-    const handleWindowBlur = () => {
-      setIsBlackedOut(true);
-    };
-
     window.addEventListener('contextmenu', handleContextMenu);
     window.addEventListener('keydown', handleKeyDown);
     document.addEventListener('visibilitychange', handleVisibilityChange);
-    window.addEventListener('blur', handleWindowBlur);
 
     return () => {
       window.removeEventListener('contextmenu', handleContextMenu);
       window.removeEventListener('keydown', handleKeyDown);
       document.removeEventListener('visibilitychange', handleVisibilityChange);
-      window.removeEventListener('blur', handleWindowBlur);
     };
   }, [enabled, onViolation, showTemporaryWarning]);
 
