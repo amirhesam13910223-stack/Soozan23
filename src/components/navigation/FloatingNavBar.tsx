@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Home, KeyRound, Download, Plus } from 'lucide-react';
 
 export type NavTab = 'home' | 'manage_code' | 'receive_file' | 'profile' | 'settings';
@@ -21,55 +21,73 @@ export const FloatingNavBar: React.FC<Props> = ({
   onOpenWizard,
   isAppMode = true,
 }) => {
-  // Mobile Virtual Keyboard Detection (prevents FAB & navbar from popping up over keyboard/inputs)
-  const [isKeyboardOpen, setIsKeyboardOpen] = useState<boolean>(false);
+  const fabRef = useRef<HTMLDivElement>(null);
+  const navRef = useRef<HTMLDivElement>(null);
+  const baseHeightRef = useRef<number>(window.innerHeight);
 
   useEffect(() => {
-    // 1. Visual Viewport height shrinkage listener (standard in mobile Chrome)
-    const handleViewportResize = () => {
-      if (window.visualViewport) {
-        const heightDifference = window.innerHeight - window.visualViewport.height;
-        setIsKeyboardOpen(heightDifference > 140);
-      }
+    baseHeightRef.current = window.innerHeight;
+
+    const isInputActive = () => {
+      const active = document.activeElement;
+      if (!active) return false;
+      const tag = active.tagName?.toUpperCase();
+      return (
+        tag === 'INPUT' ||
+        tag === 'TEXTAREA' ||
+        tag === 'SELECT' ||
+        (typeof active.getAttribute === 'function' && active.getAttribute('contenteditable') === 'true')
+      );
     };
 
-    // 2. Focus in/out listeners on form inputs
-    const handleFocusIn = (e: FocusEvent) => {
-      const target = e.target as HTMLElement | null;
-      if (
-        target &&
-        (target.tagName === 'INPUT' ||
-          target.tagName === 'TEXTAREA' ||
-          target.getAttribute('contenteditable') === 'true')
-      ) {
-        if (window.innerWidth <= 768) {
-          setIsKeyboardOpen(true);
+    let rafId: number | null = null;
+
+    const updatePosition = () => {
+      if (rafId) cancelAnimationFrame(rafId);
+
+      rafId = requestAnimationFrame(() => {
+        const inputActive = isInputActive();
+        const vv = window.visualViewport;
+
+        // When no input is active, update base baseline height
+        if (!inputActive) {
+          baseHeightRef.current = Math.max(baseHeightRef.current, window.innerHeight);
         }
-      }
+
+        const currentHeight = vv ? vv.height : window.innerHeight;
+        const offsetTop = vv ? vv.offsetTop : 0;
+
+        // Calculate the height consumed by the virtual keyboard / viewport shrink
+        const delta = baseHeightRef.current - (currentHeight + offsetTop);
+        const shift = Math.max(0, Math.round(delta));
+        const transformValue = shift > 0 ? `translate3d(0, ${shift}px, 0)` : '';
+
+        // Direct DOM update (Zero React re-render thrashing on scroll/resize)
+        if (fabRef.current) fabRef.current.style.transform = transformValue;
+        if (navRef.current) navRef.current.style.transform = transformValue;
+      });
     };
 
-    const handleFocusOut = () => {
-      setTimeout(() => {
-        const active = document.activeElement;
-        if (
-          !active ||
-          (active.tagName !== 'INPUT' &&
-            active.tagName !== 'TEXTAREA' &&
-            active.getAttribute('contenteditable') !== 'true')
-        ) {
-          setIsKeyboardOpen(false);
-        }
-      }, 120);
-    };
-
-    window.visualViewport?.addEventListener('resize', handleViewportResize);
-    window.addEventListener('focusin', handleFocusIn);
-    window.addEventListener('focusout', handleFocusOut);
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', updatePosition);
+      window.visualViewport.addEventListener('scroll', updatePosition);
+    }
+    window.addEventListener('resize', updatePosition);
+    window.addEventListener('scroll', updatePosition);
+    window.addEventListener('focusin', updatePosition);
+    window.addEventListener('focusout', () => {
+      setTimeout(updatePosition, 120);
+    });
 
     return () => {
-      window.visualViewport?.removeEventListener('resize', handleViewportResize);
-      window.removeEventListener('focusin', handleFocusIn);
-      window.removeEventListener('focusout', handleFocusOut);
+      if (rafId) cancelAnimationFrame(rafId);
+      if (window.visualViewport) {
+        window.visualViewport.removeEventListener('resize', updatePosition);
+        window.visualViewport.removeEventListener('scroll', updatePosition);
+      }
+      window.removeEventListener('resize', updatePosition);
+      window.removeEventListener('scroll', updatePosition);
+      window.removeEventListener('focusin', updatePosition);
     };
   }, []);
 
@@ -97,31 +115,29 @@ export const FloatingNavBar: React.FC<Props> = ({
 
   return (
     <>
-      {/* Floating Accent Circular FAB - Elevated and stays behind/hidden when keyboard is open */}
+      {/* Floating Accent Circular FAB - Locked strictly in place via direct GPU transform */}
       <div
-        className={`fixed bottom-24 sm:bottom-28 left-4 sm:left-6 z-40 transition-all duration-200 ease-out ${
-          isKeyboardOpen ? 'opacity-0 pointer-events-none translate-y-36' : 'opacity-100 translate-y-0'
-        }`}
+        ref={fabRef}
+        className="floating-fab-container"
       >
         <button
           type="button"
           onClick={onOpenWizard}
-          className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-gradient-to-tr from-orange-500 via-orange-500 to-amber-500 text-white shadow-2xl shadow-orange-500/40 flex items-center justify-center hover:scale-110 active:scale-95 transition-all border-2 border-zinc-950 focus:outline-none ring-4 ring-orange-500/10"
+          className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-gradient-to-tr from-orange-500 via-orange-500 to-amber-500 text-white shadow-xl shadow-orange-500/35 flex items-center justify-center hover:scale-105 active:scale-95 transition-transform border-2 border-zinc-950 focus:outline-none ring-4 ring-orange-500/10"
           title="اشتراک‌گذاری فایل جدید (ویزارد)"
           aria-label="اشتراک‌گذاری فایل جدید"
         >
-          <Plus className="w-7 h-7 sm:w-8 sm:h-8 stroke-[2.75]" />
+          <Plus className="w-6 h-6 sm:w-7 sm:h-7 stroke-[2.75]" />
         </button>
       </div>
 
-      {/* Centered Floating Capsule Bar - Enlarged slightly with extra padding, stays hidden when keyboard opens */}
+      {/* Centered Floating Capsule Bar - Locked strictly in place, never moves or fades */}
       <div
-        className={`fixed bottom-4 sm:bottom-6 inset-x-0 z-40 flex items-center justify-center px-3 pointer-events-none transition-all duration-200 ease-out ${
-          isKeyboardOpen ? 'opacity-0 pointer-events-none translate-y-36' : 'opacity-100 translate-y-0'
-        }`}
+        ref={navRef}
+        className="floating-nav-container flex items-center justify-center px-3"
       >
         <nav
-          className="pointer-events-auto flex items-center gap-1.5 p-1.5 sm:p-2 rounded-full bg-zinc-900/95 backdrop-blur-xl border border-zinc-700/60 shadow-2xl shadow-black/80 max-w-[calc(100vw-24px)]"
+          className="pointer-events-auto flex items-center gap-1 p-1.5 rounded-full bg-zinc-900/95 backdrop-blur-xl border border-zinc-700/60 shadow-2xl shadow-black/80 max-w-[calc(100vw-24px)]"
           role="navigation"
           aria-label="ناوبری اصلی سوزان"
         >
@@ -135,7 +151,7 @@ export const FloatingNavBar: React.FC<Props> = ({
                 type="button"
                 onClick={() => onSelectTab(item.id)}
                 aria-current={isActive ? 'page' : undefined}
-                className={`relative min-w-[82px] sm:min-w-[100px] py-2.5 sm:py-3 px-3.5 sm:px-4.5 rounded-full flex flex-col items-center justify-center gap-1 text-center transition-all duration-300 focus:outline-none select-none ${
+                className={`relative min-w-[70px] sm:min-w-[84px] py-1.5 sm:py-2 px-3 sm:px-3.5 rounded-full flex flex-col items-center justify-center gap-0.5 text-center transition-colors focus:outline-none select-none ${
                   isActive
                     ? 'text-white'
                     : 'text-zinc-400 hover:text-zinc-200'
@@ -145,12 +161,11 @@ export const FloatingNavBar: React.FC<Props> = ({
                 {isActive && (
                   <span
                     className="absolute inset-0 rounded-full bg-gradient-to-r from-orange-500 to-amber-600 shadow-md shadow-orange-500/25 -z-0"
-                    layout-id="active-pill"
                   />
                 )}
 
-                <Icon className="w-5.5 h-5.5 sm:w-6 sm:h-6 relative z-10 shrink-0 stroke-[2.2]" />
-                <span className="text-[11.5px] sm:text-xs font-bold tracking-tight relative z-10 leading-none truncate max-w-full">
+                <Icon className="w-5 h-5 relative z-10 shrink-0 stroke-[2.2]" />
+                <span className="text-[11px] sm:text-xs font-bold tracking-tight relative z-10 leading-none truncate max-w-full">
                   {item.label}
                 </span>
               </button>

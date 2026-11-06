@@ -30,7 +30,17 @@ import { Sparkles, ArrowRight, ShieldAlert, Plus } from 'lucide-react';
 export default function App() {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [currentSession, setCurrentSession] = useState<Session | null>(null);
-  const [activeTab, setActiveTab] = useState<NavTab>('home');
+  const [activeTab, setActiveTab] = useState<NavTab>(() => {
+    try {
+      const saved = localStorage.getItem('soozan_active_tab') as NavTab | null;
+      if (saved && ['home', 'manage_code', 'receive_file', 'profile', 'settings'].includes(saved)) {
+        return saved;
+      }
+    } catch {
+      // ignore
+    }
+    return 'home';
+  });
   const [isBiometricLocked, setIsBiometricLocked] = useState<boolean>(false);
   const [showScannerTester, setShowScannerTester] = useState<boolean>(false);
   const [showWizard, setShowWizard] = useState<boolean>(false);
@@ -43,6 +53,16 @@ export default function App() {
   const [showResilienceModal, setShowResilienceModal] = useState<boolean>(false);
   const [showHelpCenterModal, setShowHelpCenterModal] = useState<boolean>(false);
   const [showPricingModal, setShowPricingModal] = useState<boolean>(false);
+
+  const handleNavigate = (tab: NavTab | 'profile' | 'settings') => {
+    setActiveTab(tab as NavTab);
+    try {
+      localStorage.setItem('soozan_active_tab', tab);
+    } catch {
+      // ignore
+    }
+    setShowScannerTester(false);
+  };
 
   // Initial session resolution
   const refreshSession = () => {
@@ -68,12 +88,22 @@ export default function App() {
 
   const handleLogout = () => {
     terminateCurrentSession();
+    try {
+      localStorage.removeItem('soozan_active_tab');
+    } catch {
+      // ignore
+    }
     refreshSession();
     setActiveTab('home');
     setShowScannerTester(false);
   };
 
   const handleAllSessionsTerminated = () => {
+    try {
+      localStorage.removeItem('soozan_active_tab');
+    } catch {
+      // ignore
+    }
     refreshSession();
     setShowSessionsModal(false);
     setActiveTab('home');
@@ -82,7 +112,7 @@ export default function App() {
 
   const handleOpenScannerTester = () => {
     setShowScannerTester(true);
-    setActiveTab('home');
+    handleNavigate('home');
   };
 
   return (
@@ -99,10 +129,7 @@ export default function App() {
         onClose={() => setIsSideMenuOpen(false)}
         user={currentUser}
         activeTab={activeTab}
-        onNavigate={(tab) => {
-          setActiveTab(tab);
-          setShowScannerTester(false);
-        }}
+        onNavigate={handleNavigate}
         onOpenWizard={() => {
           if (!currentUser) {
             setActiveTab('home');
@@ -131,7 +158,7 @@ export default function App() {
       )}
 
       {/* Main Content Area */}
-      <main className="flex-1 w-full flex flex-col overflow-x-hidden">
+      <main className="flex-1 w-full max-w-full min-w-0 flex flex-col overflow-x-hidden">
         {/* View Router */}
         {!currentUser && activeTab === 'home' ? (
           <div className="flex-1 flex items-center justify-center py-6">
@@ -172,7 +199,7 @@ export default function App() {
         ) : activeTab === 'profile' && currentUser ? (
           <ProfileView
             user={currentUser}
-            onNavigate={(tab) => setActiveTab(tab)}
+            onNavigate={handleNavigate}
             onLogout={handleLogout}
           />
         ) : activeTab === 'settings' && currentUser ? (
@@ -191,10 +218,7 @@ export default function App() {
       {/* Floating Capsule Navigation Bar (Adhering strictly to 03-DESIGN.md & refs/nav-reference.png) */}
       <FloatingNavBar
         activeTab={activeTab}
-        onSelectTab={(tab) => {
-          setActiveTab(tab);
-          setShowScannerTester(false);
-        }}
+        onSelectTab={handleNavigate}
         onOpenWizard={() => {
           if (!currentUser) {
             setActiveTab('home');

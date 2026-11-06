@@ -175,7 +175,7 @@ export const SenderDashboard: React.FC<Props> = ({
   const quarantinedCount = allFiles.filter((f) => f.status === 'quarantined').length;
 
   return (
-    <div className="max-w-5xl mx-auto px-3 sm:px-4 py-6 sm:py-8 pb-4 space-y-6 text-right overflow-x-hidden">
+    <div className="w-full max-w-5xl mx-auto px-3 sm:px-4 py-5 sm:py-8 pb-4 space-y-5 sm:space-y-6 text-right overflow-hidden">
       {/* Page Title & Subtitle (Matching Screenshot 4) */}
       <div className="space-y-1">
         <h1 className="text-xl sm:text-2xl font-black text-white flex items-center gap-2">
@@ -186,21 +186,21 @@ export const SenderDashboard: React.FC<Props> = ({
       </div>
 
       {/* 4 STATS CARDS (Matching Screenshot 4: کل فایل‌ها, فعال, غیرفعال, متوقف شده) */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4 w-full">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 w-full max-w-full min-w-0">
         {/* Total Files */}
-        <div className="p-3 sm:p-4 rounded-2xl bg-zinc-900 border border-zinc-800 space-y-1 min-w-0 overflow-hidden">
+        <div className="p-3 sm:p-3.5 rounded-2xl bg-zinc-900 border border-zinc-800 space-y-1 min-w-0 w-full overflow-hidden">
           <div className="flex items-center justify-between text-zinc-400 text-xs gap-1">
             <span className="truncate">کل فایل‌ها</span>
-            <span className="text-base shrink-0">📁</span>
+            <span className="text-sm shrink-0">📁</span>
           </div>
           <div className="text-xl sm:text-2xl font-black text-white truncate">
             {toPersianDigits(allFiles.length)}
           </div>
-          <div className="text-[10px] text-zinc-500 truncate">مجموع بسته‌های ایجادشده</div>
+          <div className="text-[10px] text-zinc-500 truncate">مجموع ایجادشده</div>
         </div>
 
         {/* Active Files */}
-        <div className="p-3 sm:p-4 rounded-2xl bg-zinc-900 border border-zinc-800 space-y-1 min-w-0 overflow-hidden">
+        <div className="p-3 sm:p-3.5 rounded-2xl bg-zinc-900 border border-zinc-800 space-y-1 min-w-0 w-full overflow-hidden">
           <div className="flex items-center justify-between text-zinc-400 text-xs gap-1">
             <span className="truncate">فعال</span>
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shrink-0" />
@@ -212,7 +212,7 @@ export const SenderDashboard: React.FC<Props> = ({
         </div>
 
         {/* Inactive / Burned Files */}
-        <div className="p-3 sm:p-4 rounded-2xl bg-zinc-900 border border-zinc-800 space-y-1 min-w-0 overflow-hidden">
+        <div className="p-3 sm:p-3.5 rounded-2xl bg-zinc-900 border border-zinc-800 space-y-1 min-w-0 w-full overflow-hidden">
           <div className="flex items-center justify-between text-zinc-400 text-xs gap-1">
             <span className="truncate">غیرفعال / سوخته</span>
             <span className="w-2 h-2 rounded-full bg-rose-400 shrink-0" />
@@ -224,10 +224,10 @@ export const SenderDashboard: React.FC<Props> = ({
         </div>
 
         {/* Quarantined / Paused Files */}
-        <div className="p-3 sm:p-4 rounded-2xl bg-zinc-900 border border-zinc-800 space-y-1 min-w-0 overflow-hidden">
+        <div className="p-3 sm:p-3.5 rounded-2xl bg-zinc-900 border border-zinc-800 space-y-1 min-w-0 w-full overflow-hidden">
           <div className="flex items-center justify-between text-zinc-400 text-xs gap-1">
             <span className="truncate">متوقف شده (موقت)</span>
-            <span className="text-base shrink-0">🔒</span>
+            <span className="text-sm shrink-0">🔒</span>
           </div>
           <div className="text-xl sm:text-2xl font-black text-white truncate">
             {toPersianDigits(quarantinedCount)}
@@ -236,50 +236,15 @@ export const SenderDashboard: React.FC<Props> = ({
         </div>
       </div>
 
-      {/* QUICK ACTIONS BANNER */}
-      <div className="p-4 sm:p-6 rounded-3xl bg-gradient-to-r from-zinc-900 via-zinc-900 to-orange-950/20 border border-orange-500/30 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-xl overflow-hidden">
-        <div className="space-y-1 min-w-0">
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="text-sm font-black text-white">میز کار فرستنده سوزان</span>
-            <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-orange-500/10 text-orange-400 border border-orange-500/20">
-              فاز ۴: مدیریت و داشبورد
-            </span>
-          </div>
-          <p className="text-xs text-zinc-400 leading-relaxed max-w-xl">
-            رصد وضعیت زنده محتواهای فعال، شمارش معکوس نابودی، رویدادهای ممیزی و سوزاندن فوری با یک کلیک.
-          </p>
-        </div>
-
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-2.5 w-full md:w-auto shrink-0">
-          <button
-            type="button"
-            onClick={onOpenScanner}
-            className="px-4 py-2.5 rounded-xl text-xs font-semibold bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 text-zinc-300 transition-colors flex items-center justify-center gap-1.5"
-          >
-            <ShieldCheck className="w-4 h-4 text-orange-400" />
-            <span>اسکنر بدافزار</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={onOpenWizard}
-            className="px-5 py-2.5 rounded-xl text-xs font-bold bg-gradient-to-r from-orange-500 to-amber-600 text-white shadow-lg shadow-orange-500/25 hover:from-orange-600 hover:to-amber-700 transition-all flex items-center justify-center gap-1.5"
-          >
-            <Plus className="w-4 h-4 stroke-[3]" />
-            <span>اشتراک فایل جدید</span>
-          </button>
-        </div>
-      </div>
-
-      {/* SEARCH AND FILTERS TOOLBAR (Restructured, Clean & Modern) */}
-      <div className="p-3.5 sm:p-4 rounded-3xl bg-zinc-900/90 border border-zinc-800 space-y-3 shadow-xl backdrop-blur-md">
+      {/* SEARCH AND FILTERS TOOLBAR */}
+      <div className="w-full max-w-full min-w-0 p-3.5 sm:p-4 rounded-3xl bg-zinc-900/90 border border-zinc-800 space-y-3 shadow-xl backdrop-blur-md overflow-hidden">
         {/* Row 1: Search Input + Category Dropdown Side-by-Side */}
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 w-full min-w-0">
           {/* Search Input with Clear Button */}
-          <div className="relative flex-1">
+          <div className="relative flex-1 min-w-0">
             <input
               type="text"
-              placeholder="جستجو در فایل‌ها، یادداشت یا کد مدیریت..."
+              placeholder="جستجو بر اساس نام فایل، یادداشت خصوصی یا کد..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full py-2.5 pr-10 pl-8 rounded-2xl bg-zinc-950 border border-zinc-800 text-zinc-100 placeholder:text-zinc-500 text-xs focus:border-orange-500 focus:outline-none transition-all shadow-inner"
@@ -318,7 +283,7 @@ export const SenderDashboard: React.FC<Props> = ({
         </div>
 
         {/* Row 2: Status Pills in a Smooth Horizontal Scrollable Bar (No Wrapping Clutter) */}
-        <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5 scroll-smooth">
+        <div className="w-full max-w-full min-w-0 flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5 scroll-smooth">
           {[
             { id: 'all' as StatusFilter, label: 'همه وضعیت‌ها', count: allFiles.length, dot: null },
             { id: 'issued' as StatusFilter, label: 'فعال', count: activeCount, dot: 'bg-emerald-400' },
@@ -512,6 +477,18 @@ export const SenderDashboard: React.FC<Props> = ({
             );
           })
         )}
+      </div>
+
+      {/* End-of-Dashboard Start Share Button */}
+      <div className="pt-2 flex justify-center">
+        <button
+          type="button"
+          onClick={onOpenWizard}
+          className="w-full sm:w-auto px-8 py-3.5 rounded-2xl text-xs sm:text-sm font-bold bg-gradient-to-r from-orange-500 via-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700 text-white shadow-xl shadow-orange-500/25 transition-all flex items-center justify-center gap-2.5 active:scale-98"
+        >
+          <Plus className="w-5 h-5 stroke-[2.75]" />
+          <span>شروع اشتراک‌گذاری فایل جدید</span>
+        </button>
       </div>
 
       {/* Immediate Burn Confirmation Dialog */}

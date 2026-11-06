@@ -1,8 +1,10 @@
 <!doctype html>
-<html lang="fa" dir="rtl">
+<html lang="fa" dir="rtl" class="dark" style="background-color: #09090b; color: #f4f4f5;">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, interactive-widget=overlays-content" />
+    <meta name="color-scheme" content="dark" />
+    <meta name="theme-color" content="#09090b" />
     <title>سوزان | Soozan - پیک امن محتوای خودنابودشونده</title>
     <meta name="description" content="سوزان؛ پیک امن محتوای خودنابودشونده. بفرست، بدون اینکه جا بماند." />
     <meta property="og:title" content="سوزان | Soozan" />
@@ -12,10 +14,21 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script>
+      // Enforce permanent dark canvas background to prevent white flash on reload
+      document.documentElement.style.backgroundColor = '#09090b';
+      if (document.body) document.body.style.backgroundColor = '#09090b';
+
+      // Intercept accidental unhandled form submits that trigger full page reloads on mobile Enter/Go
+      window.addEventListener('submit', function(e) {
+        if (!e.defaultPrevented) {
+          e.preventDefault();
+        }
+      }, true);
+    </script>
   </head>
-  <body class="bg-zinc-950 text-zinc-100 antialiased selection:bg-orange-500/30 selection:text-orange-200">
+  <body class="bg-zinc-950 text-zinc-100 antialiased selection:bg-orange-500/30 selection:text-orange-200" style="background-color: #09090b; min-height: 100vh;">
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
-
